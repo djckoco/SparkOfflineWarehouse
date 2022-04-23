@@ -22,7 +22,7 @@ import org.slf4j.{Logger, LoggerFactory}
  *      b：使用overwrite方式，将需要的数据保留手动保存，不想要的数据不管，直接被overwrite。
  *  6、hive建分区表。写开始就准备好，表结构与schema匹配。（parquet中包含schema）。维护分区信息
  * */
-object SparkETLdwd2ads {
+object SparkETLdwd2adsV2 {
     private val logger: Logger = LoggerFactory.getLogger("SparkETLdwd2ads")
 
     def main(args: Array[String]): Unit = {
