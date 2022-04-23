@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+<configuration>
+
+	<property>
+	  <name>javax.jdo.option.ConnectionURL</name>
+	  <value>jdbc:mysql://bigdata:3306/hive_matastore?createDatabaseIfNotExist=true&amp;useSSL=false&amp;useUnicode=true&amp;characterEncoding=UTF-8</value>
+	</property>
+
+	<property>
+	  <name>javax.jdo.option.ConnectionDriverName</name>
+	  <value>com.mysql.jdbc.Driver</value>
+	</property>
+
+	<property>
+	  <name>javax.jdo.option.ConnectionUserName</name>
+	  <value>root</value>
+	</property>
+
+	<property>
+	  <name>javax.jdo.option.ConnectionPassword</name>
+	  <value>rootroot</value>
+	</property>
+	
+	<!--显示列名-->
+	<property>
+		<name>hive.cli.print.header</name>
+		<value>true</value>
+	</property>
+
+	<!--显示库名-->
+	<property>
+		<name>hive.cli.print.current.db</name>
+		<value>true</value>
+	</property>
+
+	<!--hive开启本地模式，尽量不跑MapReduce-->
+	<property>
+                <name>hive.exec.mode.local.auto</name>
+                <value>true</value>
+        </property>
+	
+	<!--web主机-->
+	<property>
+		<name>hive.server2.webui.host</name>
+		<value>bigdata</value>
+	</property>
+	
+	<!--web端口-->
+	<property>
+		<name>hive.server2.webui.port</name>
+		<value>19990</value>
+	</property>
+
+	<property>
+	   	 <name>hbase.zookeeper.quorum</name>
+	   	 <value>bigdata</value>
+	</property>
+	
+	<property>
+    		<name>hbase.zookeeper.client.port</name>
+    		<value>2181</value>
+  	</property>
+	
+<!--Thrift JDBC/ODBC server start -->
+   <property>
+       <name>hive.server2.thrift.min.worker.threads</name>
+       <value>5</value>
+   </property>
+   <property>
+       <name>hive.server2.thrift.max.worker.threads</name>
+       <value>500</value>
+   </property>
+   <property>
+      <name>hive.server2.thrift.port</name>
+       <value>10000</value>
+   </property>
+   <property>
+       <name>hive.server2.thrift.bind.host</name>
+       <!--Spark Thrift Server服务器名 -->
+       <value>bigdata</value> 
+   </property>
+<!--Thrift JDBC/ODBC server end -->
+</configuration>

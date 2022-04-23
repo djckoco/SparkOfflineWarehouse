@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.ruozedata.bigdata</groupId>
+  <artifactId>SparkOfflineWarehouse</artifactId>
+  <version>2.0</version>
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.0.2</version>
+      </plugin>
+      <plugin>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  <repositories>
+    <repository>
+      <id>alimaven</id>
+      <name>aliyun maven</name>
+      <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+    </repository>
+    <repository>
+      <id>cloudera</id>
+      <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+    </repository>
+  </repositories>
+  <properties>
+    <flume-ng-log4jappender_version>1.6.0-cdh5.16.2</flume-ng-log4jappender_version>
+    <maven.compiler.target>8</maven.compiler.target>
+    <spark-core_version>2.4.6</spark-core_version>
+    <scala-tool_version>2.11</scala-tool_version>
+    <jackson_version>2.9.2</jackson_version>
+    <hadoop-client_version>2.6.0-cdh5.16.2</hadoop-client_version>
+    <log4j_version>2.10.0</log4j_version>
+    <maven.compiler.source>8</maven.compiler.source>
+    <mysql_version>5.1.48</mysql_version>
+    <hive-jdbc_version>1.1.0-cdh5.16.2</hive-jdbc_version>
+    <spark-sql_version>2.4.6</spark-sql_version>
+  </properties>
+</project>
+
