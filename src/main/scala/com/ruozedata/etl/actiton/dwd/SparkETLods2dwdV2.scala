@@ -2,6 +2,7 @@ package com.ruozedata.etl.actiton.dwd
 
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.rdd.RDD
+import org.apache.spark.scheduler.SparkListener
 import org.apache.spark.sql.types.{LongType, StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Row, SaveMode, SparkSession}
 import org.apache.spark.{SparkConf, SparkContext}
@@ -14,7 +15,7 @@ import java.net.URL
  * @author 阿左
  * @create 2022-04-15
  * */
-object SparkETLods2dwdV2 {
+object SparkETLods2dwdV2 extends SparkListener{
 
     private val logger: Logger = LoggerFactory.getLogger("SparkETLods2dwdV2")
 
@@ -25,22 +26,22 @@ object SparkETLods2dwdV2 {
 //        val sparkConf = new SparkConf().setAppName("SparkETL")
 
         val spark = SparkSession.builder().config(sparkConf).getOrCreate()
-        val ipResourcePath = spark.sqlContext.getConf("spark.app.ipResourcePath")
-        val inputPath = spark.sqlContext.getConf("spark.app.inputPath")
-        val outputPath = spark.sqlContext.getConf("spark.app.outputPath")
-        val blockSize = spark.sqlContext.getConf("spark.app.blockSize","128").toInt
-        val perBlockRowsForSnappy = spark.sqlContext.getConf("spark.app.perBlockRowsForSnappy","2500000").toInt
-        val printSchema = spark.sqlContext.getConf("spark.app.printSchema","false").toBoolean
+//        val ipResourcePath = spark.sqlContext.getConf("spark.app.ipResourcePath")
+//        val inputPath = spark.sqlContext.getConf("spark.app.inputPath")
+//        val outputPath = spark.sqlContext.getConf("spark.app.outputPath")
+//        val blockSize = spark.sqlContext.getConf("spark.app.blockSize","128").toInt
+//        val perBlockRowsForSnappy = spark.sqlContext.getConf("spark.app.perBlockRowsForSnappy","2500000").toInt
+//        val printSchema = spark.sqlContext.getConf("spark.app.printSchema","false").toBoolean
 
 
-        ETLParse(spark, ipResourcePath, inputPath, outputPath, blockSize,
-            perBlockRowsForSnappy, printSchema)
+//        ETLParse(spark, ipResourcePath, inputPath, outputPath, blockSize,
+//            perBlockRowsForSnappy, printSchema)
 
 //         本地测试/hadoop-dwV2/lib /hadoop-dwV2/ods /hadoop-dwV2/dwd
-//                ETLParse(spark, "/hadoop-dwV2/lib/ip.txt",
-//                    "/hadoop-dwV2/dw/ods/accesstt2/d=20220423/part*",
-//                    "/hadoop-dwV2/dw/dwd/accesstt2/d=20220418",
-//                    128,2500000,true)
+                ETLParse(spark, "/hadoop-dwV2/lib/ip.txt",
+                    "/hadoop-dwV2/dw/ods/access/d=20220423/part*",
+                    "/hadoop-dwV2/dw/dwd/accesstt2/d=20220423",
+                    128,2500000,true)
 
     }
 
@@ -72,9 +73,12 @@ object SparkETLods2dwdV2 {
         })
 
         val ipInfoDf = spark.createDataFrame(ipInfoRow, getIpInfoSchema())
-        ipInfoDf.show(1)
-        ipInfoDf.printSchema()
+
         ipInfoDf.createTempView("ipInfo")
+        ipInfoDf.cache() //缓存DF
+        if (printSchema) {
+            ipInfoDf.printSchema()
+        }
 
         // 处理的dwd层access表
         val hadoopConfiguration = sc.hadoopConfiguration
@@ -83,7 +87,6 @@ object SparkETLods2dwdV2 {
         if (printSchema) {
             odsAccessDf.printSchema()
         }
-
 
         val odsAccessExtendRow: RDD[Row] = odsAccessDf.rdd.mapPartitions(partition => {
             val rows: Iterator[Row] = partition.map(record => {
@@ -148,8 +151,11 @@ object SparkETLods2dwdV2 {
         })
 
         val preDwdAccessDf = spark.createDataFrame(odsAccessExtendRow, getOdsAccessExtendSchema())
+
         preDwdAccessDf.createTempView("preDwdAccess")
+        preDwdAccessDf.cache()  //缓存DF
         val rows = preDwdAccessDf.count()
+
         val dwdAccessDf: DataFrame = spark.sql(
             """
               |
@@ -172,6 +178,7 @@ object SparkETLods2dwdV2 {
                 .save(outputPath)
 
         logger.info(s"dwd层access表数据处理完成，共处理条数：$rows")
+        Thread.sleep(Int.MaxValue)
         spark.stop()
     }
 
@@ -222,9 +229,9 @@ object SparkETLods2dwdV2 {
     def getIpInfoSchema(): StructType={
         val ipInfoSchema = StructType(
             StructField("ip", StringType) ::
-                    StructField("province", StringType) ::
-                    StructField("city", StringType) ::
-                    StructField("isp", StringType) :: Nil
+            StructField("province", StringType) ::
+            StructField("city", StringType) ::
+            StructField("isp", StringType) :: Nil
         )
         ipInfoSchema
     }
