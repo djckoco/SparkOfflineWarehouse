@@ -23,25 +23,26 @@ object SparkETLods2dwdV2 extends SparkListener{
 
         System.setProperty("HADOOP_USER_NAME", "hadoop")
         val sparkConf = new SparkConf().setMaster("local[*]").setAppName("SparkETL")
+//        sparkConf.set("spark.sql.cbo.enabled","true")
 //        val sparkConf = new SparkConf().setAppName("SparkETL")
 
-        val spark = SparkSession.builder().config(sparkConf).getOrCreate()
-//        val ipResourcePath = spark.sqlContext.getConf("spark.app.ipResourcePath")
-//        val inputPath = spark.sqlContext.getConf("spark.app.inputPath")
-//        val outputPath = spark.sqlContext.getConf("spark.app.outputPath")
-//        val blockSize = spark.sqlContext.getConf("spark.app.blockSize","128").toInt
-//        val perBlockRowsForSnappy = spark.sqlContext.getConf("spark.app.perBlockRowsForSnappy","2500000").toInt
-//        val printSchema = spark.sqlContext.getConf("spark.app.printSchema","false").toBoolean
+        val spark = SparkSession.builder().config(sparkConf).enableHiveSupport().getOrCreate()
+        val ipResourcePath = spark.sqlContext.getConf("spark.app.ipResourcePath")
+        val inputPath = spark.sqlContext.getConf("spark.app.inputPath")
+        val outputPath = spark.sqlContext.getConf("spark.app.outputPath")
+        val blockSize = spark.sqlContext.getConf("spark.app.blockSize","128").toInt
+        val perBlockRowsForSnappy = spark.sqlContext.getConf("spark.app.perBlockRowsForSnappy","2500000").toInt
+        val printSchema = spark.sqlContext.getConf("spark.app.printSchema","false").toBoolean
 
 
-//        ETLParse(spark, ipResourcePath, inputPath, outputPath, blockSize,
-//            perBlockRowsForSnappy, printSchema)
+        ETLParse(spark, ipResourcePath, inputPath, outputPath, blockSize,
+            perBlockRowsForSnappy, printSchema)
 
 //         本地测试/hadoop-dwV2/lib /hadoop-dwV2/ods /hadoop-dwV2/dwd
-                ETLParse(spark, "/hadoop-dwV2/lib/ip.txt",
-                    "/hadoop-dwV2/dw/ods/access/d=20220423/part*",
-                    "/hadoop-dwV2/dw/dwd/accesstt2/d=20220423",
-                    128,2500000,true)
+//                ETLParse(spark, "/hadoop-dwV2/lib/ip.txt",
+//                    "/hadoop-dwV2/dw/ods/access/d=20220423/part*",
+//                    "/hadoop-dwV2/dw/dwd/accesstt2/d=20220423",
+//                    128,2500000,true)
 
     }
 

@@ -12,14 +12,13 @@
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <hadoop-client_version>2.6.0-cdh5.16.2</hadoop-client_version>
-        <hive-jdbc_version>1.1.0-cdh5.16.2</hive-jdbc_version>
+        <hive_version>1.1.0-cdh5.16.2</hive_version>
         <mysql_version>5.1.48</mysql_version>
         <log4j_version>2.10.0</log4j_version>
         <scala-tool_version>2.11</scala-tool_version>
-        <spark-core_version>2.4.6</spark-core_version>
+        <spark_version>2.4.6</spark_version>
         <jackson_version>2.9.2</jackson_version>
         <flume-ng-log4jappender_version>1.6.0-cdh5.16.2</flume-ng-log4jappender_version>
-        <spark-sql_version>2.4.6</spark-sql_version>
     </properties>
 
     <repositories>
@@ -60,40 +59,52 @@
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_${scala-tool_version}</artifactId>
-            <version>${spark-core_version}</version>
+            <version>${spark_version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-sql_${scala-tool_version}</artifactId>
-            <version>${spark-sql_version}</version>
+            <version>${spark_version}</version>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>org.apache.hive</groupId>-->
-<!--            <artifactId>hive-jdbc</artifactId>-->
-<!--            <version>${hive-jdbc_version}</version>-->
-<!--            <exclusions>-->
-<!--                <exclusion>-->
-<!--                    <artifactId>servlet-api</artifactId>-->
-<!--                    <groupId>javax.servlet</groupId>-->
-<!--                </exclusion>-->
-<!--            </exclusions>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-hive_${scala-tool_version}</artifactId>
+            <version>${spark_version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-jdbc</artifactId>
+            <version>${hive_version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>servlet-api</artifactId>
+                    <groupId>javax.servlet</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 <!--        &lt;!&ndash; https://mvnrepository.com/artifact/javax.servlet/javax.servlet-api &ndash;&gt;-->
 
 
-<!--        <dependency>-->
-<!--            <groupId>org.apache.hive</groupId>-->
-<!--            <artifactId>hive-exec</artifactId>-->
-<!--            <version>${hive-jdbc_version}</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-exec</artifactId>
+            <version>${hive_version}</version>
+        </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>mysql</groupId>-->
-<!--            <artifactId>mysql-connector-java</artifactId>-->
-<!--            <version>${mysql-version}</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-cli</artifactId>
+            <version>${hive_version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>${mysql_version}</version>
+        </dependency>
 
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>

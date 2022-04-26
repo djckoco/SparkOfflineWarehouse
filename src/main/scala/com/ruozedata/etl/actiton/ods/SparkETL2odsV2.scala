@@ -6,6 +6,7 @@ import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.types.{LongType, StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Dataset, Row, SaveMode, SparkSession}
+import org.apache.spark.storage.StorageLevel
 import org.apache.spark.{SparkConf, SparkContext}
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -19,24 +20,38 @@ object SparkETL2odsV2 {
 
     def main(args: Array[String]): Unit = {
         System.setProperty("HADOOP_USER_NAME", "hadoop")
-        val sparkConf = new SparkConf().setAppName("SparkETL2odsV2")//.setMaster("local[2]")
+        val sparkConf = new SparkConf().setAppName("SparkETL2odsV2").setMaster("local[2]")
+//        sparkConf.set("spark.memory.offHeap.enabled","true")
+//        sparkConf.set("spark.memory.offHeap.size","120m")
+
         val spark = SparkSession.builder().config(sparkConf).getOrCreate()
+        val systemMemory = spark.sparkContext.getConf.getLong("spark.testing.memory", 0L)
+        val fraction = spark.sparkContext.getConf.getDouble("spark.memory.fraction", 0L)
+        val storageFraction = spark.sparkContext.getConf.getDouble("spark.testing.storageFraction", 0L)
+        val l = spark.sparkContext.getConf.getLong("spark.testing.memory", 0L)
+
+
         logger.error("SparkETL2odsV2:开始啦")
 
-        val inputPath = spark.sqlContext.getConf("spark.app.inputPath")
-        val outputPath = spark.sqlContext.getConf("spark.app.outputPath")
-        val blockSize = spark.sqlContext.getConf("spark.app.blockSize","128").toInt
-
-        ETLParse(spark , inputPath, outputPath,blockSize)
+//        val inputPath = spark.sqlContext.getConf("spark.app.inputPath")
+//        val outputPath = spark.sqlContext.getConf("spark.app.outputPath")
+//        val blockSize = spark.sqlContext.getConf("spark.app.blockSize","128").toInt
+//        val perBlockRowsForSnappy = spark.sqlContext.getConf("spark.app.perBlockRowsForSnappy","2500000").toInt
+//        val printSchema = spark.sqlContext.getConf("spark.app.printSchema","false").toBoolean
+//        val storageLevel = spark.sqlContext.getConf("spark.app.storageLevel","MEMORY_AND_DISK")
+//
+//        ETLParse(spark , inputPath, outputPath, blockSize, perBlockRowsForSnappy, printSchema, storageLevel)
        //[2022/04/17/:23:08:09 +0800]	222.83.234.112	-	1677	179	GET	http://www.ruozedata.com/video/av34329219	200	152	122	HIT
 
-        //本地测试
-        ETLParse(spark , "/hadoop-dwV2/dw/raw/access/20220418",
-            "/hadoop-dwV2/dw/ods/accessV2/d=20220418",128)
+//        //本地测试
+        ETLParse(spark , "/hadoop-dwV2/dw/raw/access/20220422",
+            "/hadoop-dwV2/dw/ods/accessV2/d=20220418",
+            128, 2500000, true, "MEMORY_AND_DISK")
 
     }
 
-    def ETLParse(spark: SparkSession, inputPath: String, output: String, blockSize :Int){
+    def ETLParse(spark: SparkSession, inputPath: String, output: String, blockSize :Int,
+                 perBlockRowsForSnappy :Int, printSchema :Boolean, storageLevel :String){
         import spark.implicits._
         val sc = spark.sparkContext
         val hadoopConfiguration = sc.hadoopConfiguration
@@ -78,8 +93,16 @@ object SparkETL2odsV2 {
         // 解析数据
 
         val df: DataFrame = spark.createDataFrame(rddRow, getSchema)
+
+//        if (storageLevel == "MEMORY_AND_DISK"){
+//            df.persist(StorageLevel.MEMORY_AND_DISK)
+//        }else{
+            df.persist(StorageLevel.MEMORY_ONLY)
+//        }
+//        df.persist(StorageLevel.OFF_HEAP)
+
         df.createTempView("tmp")
-        val inputNum = df.count()
+        val inputRows = df.count()
 
         val resDf: DataFrame = spark.sql(
             """
@@ -90,15 +113,20 @@ object SparkETL2odsV2 {
               |
               |""".stripMargin)
 
-        resDf.printSchema()
-        resDf.show(3)
-        val outputNum = resDf.count()
+        if(printSchema){
+            resDf.printSchema()
+            resDf.show(1)
+        }
 
-        resDf.write.mode(SaveMode.Overwrite)
+        val outputRows = resDf.count()
+
+        resDf.coalesce(MakeOutputCoalesce(perBlockRowsForSnappy, outputRows, blockSize)).write.mode(SaveMode.Overwrite)
                 .format("parquet")
                 .save(output)
 
-        logger.info(s"inputNum：$inputNum-outputNum$outputNum")
+        logger.info(s"inputRows：$inputRows-outputRows：$outputRows")
+
+        df.unpersist()
         spark.stop()
     }
 
@@ -132,6 +160,28 @@ object SparkETL2odsV2 {
             fileInptuTotalSize = x.getLen + fileInptuTotalSize
         })
         val partitions: Int = (fileInptuTotalSize / 1024 / 1024 / blockSize).toInt
+        if(partitions == 0) {
+            logger.info(s"rdd的分区数为：1")
+            1
+        }else{
+            logger.info(s"rdd的分区数为：$partitions")
+            partitions
+        }
+    }
+
+    /**
+     * 计算输出分区数，按text大小计算，即parquet压缩前
+     * @param perSize 平均一条数据大小
+     * @param rows 总条数
+     * @param blockSize 块大小，默认128M
+     * @return
+     */
+    def MakeOutputCoalesce(perBlockRowsForSnappy : Int, rows :Long, blockSize :Int): Int={
+        var partitions = 0
+        // 采用parquet保存，对perSize参数进行优化
+        val perSnappySize = rows / perBlockRowsForSnappy
+        partitions =( perSnappySize / blockSize ).toInt
+
         if(partitions == 0) {
             logger.info(s"rdd的分区数为：1")
             1

@@ -129,7 +129,7 @@ object SparkETLdwd2ads {
             val city = records(11)
             val host = records(14)
 //            logger.info(s"$city,--$host")
-            HostInfo(city, host)
+            (city, host)
         }).toDF()
 
         df.createTempView("hostinfo")
