@@ -5,7 +5,7 @@ import org.apache.hadoop.fs.{FileSystem, Path}
 
 /**
  * @theme 删除hdfs目标文件
- * @author 阿左
+ * @author 阿左，测试分支
  * @create 2022-04-17
  * */
 object FileUtils {
